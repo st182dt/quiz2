@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        .question {
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            text-align: center;
+        }
+        .counter {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #555;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 1.2em;
+        }
+        .option button {
+            margin-right: 10px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #000;
+            border-radius: 5px;
+        }
+        .option button.selected {
+            background-color: #d1e7fd;
+        }
+        .verify {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+        }
+        .verify:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            position: absolute;
+            border-radius: 5px;
+            padding: 10px 20px;
+            top: 20px;
+            font-size: 1.5em;
+            color: #fff;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .result.show {
+            opacity: 1;
+            transform: translateY(20px);
+        }
+    </style>
+</head>
+<body>
+    <div class="question">Loading question...</div>
+    <div class="counter">Question 1 / 3</div>
+    <div class="options"></div>
+    <button class="verify" disabled>Overiť</button>
+    <div class="result"></div>
+
+    <script>
+        const questions = [
+            {
+                text: "Medzi výkonové vlastnosti osobnosti manažéra nepatrí:",
+                options: {
+                    a: "Komunikačne zručnosti",
+                    b: "Tvorivosť",
+                    c: "Odborne zručnosti"
+                },
+                correctAnswers: ["a"]
+            },
+            {
+                text: "Proces prisudzovania základných a stálych osobnostných charakteristík ľudom sa nazýva:",
+                options: {
+                    a: "Expektačná",
+                    b: "Atribucna",
+                    c: "Afektívna"
+                },
+                correctAnswers: ["b"]
+            },
+            {
+                text: "Kto je autorom dvojfaktorovej teórie motivácie:",
+                options: {
+                    a: "Herzberg",
+                    b: "Vroom",
+                    c: "McClelland"
+                },
+                correctAnswers: ["a"]
+            },
+            {
+                text: "Zrelý, sebaistý a uznávaný člen tímu so širokým prehľadom, často vodca tímu, je charakterizovaný ako:",
+                options: {
+                    a: "Formovač",
+                    b: "Koordinátor",
+                    c: "Realizátor",
+                    d: "Majster sveta"
+                },
+                correctAnswers: ["b"]
+            },
+            {
+                text: "Introvert pracujúci svedomito, precízne a snaživo, ktorý netolerujú nepresnú prácu:",
+                options: {
+                    a: "Špecialista",
+                    b: "Doťahovač",
+                    c: "Realizátor"
+                },
+                correctAnswers: ["b"]
+            },
+            {
+                text: "Poznáme tieto typy vedenia resp. vedúceho:",
+                options: {
+                    a: "Participantove, konzultivne, autoritatívne",
+                    b: "Autokratické, demografické, lineárne",
+                    c: "Autoritatívne, demokratické, liberálne"
+                },
+                correctAnswers: ["c"]
+            },
+            {
+                text: "Viditeľne organizačne štruktúry a procesy, resp. to čo pri strete s inou kultúrou vidíme:",
+                options: {
+                    a: "Normy",
+                    b: "Artefakty",
+                    c: "Hodnoty"
+                },
+                correctAnswers: ["b"]
+            },
+            {
+                text: "Časovo náročnejšia metóda skupinového rozhodovania, ktorá nepovoľuje osobne stretnutie jednotlivých odborníkov a je realizovaná pomocou niekoľkých dotazníkov:",
+                options: {
+                    a: "Metóda nominálnej skupiny",
+                    b: "Delfska metóda",
+                    c: "Brainstorming"
+                },
+                correctAnswers: ["b"]
+            },
+            {
+                text: "V krátkosti popíšte Adamsovu teóriu spravodlivosti:",
+                type: "reveal",
+                answer: "Ľudia budú lepšie motivovaní, ak sa s nimi bude zaobchádzať spravodlivo 👍, v opačnom prípade budú demotivovaní 👎.<br>Nespravodlivé správanie vyvoláva v ľuďoch frustrácie, znižuje ich motiváciu a môže to prerásť až v odchod z danej spoločnosti."
+            },
+            {
+                text: "Aký je rozdiel medzi skupinou a tímom:",
+                type: "reveal",
+                answer: "<b>SKUPINA</b> -> Členovia majú vlastné záujmy a ciele, podnet pochádza z vonku (musí sa 😮‍💨)<br>Jednotlivci si konkurujú navzájom, komunikuje sa z časti skryto, menej dôvery. 😠<br><br><b>TÍM</b> -> Ťahajú za jeden povraz, majú rovnaký ciel, podnet pochádza z vnútra (chce sa 😇).<br>Spätne väzby prebiehajú otvorene, silná dôvera medzi členmi tímu. 🤗"
+            },
+            {
+                text: "Popíš Maslowovu hierarchiu potrieb (teória sebarealizácie):",
+                type: "reveal",
+                answer: "Najprv musí byť naplnená potreba na nižšom stupni ⬇️ a až tak môže byť naplnená potreba na vyššom stupni ⬆️<br><br>Pre oblasť pracovnej motivácie ide hierarchia takto:<br>1. Fyziologické potreby - Mzda za prácu 💵 = zabezpečenie základných potrieb<br>2. Bezpečie - Potreba istoty pracovného miesta a zárobku 😌<br>3. Sociálne potreby - Medziľudské vzťahy na pracovisku 🧍🧍🧍<br>4. Úcta a sebaúcta - Prejavy uznania od nadriadeného 😎<br>5. Sebarealizácia - Motívom je samotná pracovná úloha ✏️"
+            },
+            {
+                text: "Vypíš spôsoby riešenia konfliktov:",
+                type: "reveal",
+                answer: "<b>Rozhodovanie autoritou</b> - Neberú sa do úvahy záujmy konfliktných strán. Problém sa rieši podľa pravidiel autority. 👑<br><b>Presadenia sa silou</b> - Strany nerobia medzi sebou žiadne dohody. Silnejšia zo strán presadí svoje záujmy. 💪<br><b>Súdne rozhodnutie</b> - Sudca rozhoduje v spore na základe dôkazov 📜<br><b>Rozhodovacie konanie</b> - Rozhodca ako nezávislá tretia strana po zvážení oboch strán nájde riešenie sporu. 🤔"
+            },
+            {
+                text: "Popíš McClellandovu teóriu potrieb:",
+                type: "reveal",
+                answer: "<b>1. Potreba úspechu</b> - Dosiahnutie, resp. splnenie niečoho náročného. Prekonanie prekážok a splnenie najvyšších štandardov. 🥇<br><b>2. Potreba spolupatričnosti</b> - Túžba tráviť viac času v sociálnych vzťahoch, interakciách, skupinách, mať pocit, že niekam patrím. 😃😃<br><b>3. Potreba moci</b> - Reflektuje individuálnu túžbu ovplyvňovať, koučovať a učiť iných, mať zodpovednosť za ľudí - vhodná potreba pre manažérov. 😎"
+            },
+            {
+                text: "Popíš formálne a neformálne skupiny:",
+                type: "reveal",
+                answer: "<b>Formálne skupiny</b><br>Sú vytvorené samotnou organizáciou 🏢<br>Hlavným cieľom je zisk, výkonnosť 💵<br>Komunikácia tam je formálna (zhora nadol) 👮<br>Vedúci sa určuje organizáciou 🫅<br>Existujú tresty a odmeny na kontrolu členov ⁉️<br><br><b>Neformálne skupiny</b><br>Vznik je spontánny 😅<br>Medzi členmi sa Komunikuje neformálne 💬<br>Vedúci je zvolený skupinou 🤚<br>Hlavným cieľom je schopnosť a istota členov ⭐"
+            },
+            {
+                text: "Popíš komunikačné štýly:",
+                type: "reveal",
+                answer: "Komunikačný štýl je spôsob komunikácie manažéra, komunikačné návyky, odráža osobnosť manažéra. 🗨️<br><br><b>Analytický</b> - Viac rozmýšľa, menej hovorí, kontroluje sa, tichý, jedná pomaly 🤔<br><b>Riadiaci</b> - Nezávislý, opatrný, súťaživý, aktívny, neprejavuje city 🦁<br><b>Priateľský</b> - Citlivý, uprednostňuje dobré vzťahy, utešuje 😇<br><b>Expresívny</b> - Citlivý, myslí na seba, unáhlený 🤪"
+            },
+            {
+                text: "Popíš štýly vedenia (typy vedúceho):",
+                type: "reveal",
+                answer: "<b>Autoritatívne vedenie</b> - Prikazovanie a dôsledná kontrola. Kontakty medzi vedúcim a podriadeným sú malé. 🫅<br><b>Demokratické vedenie</b> - Je to motivačné vedenie. Je tu spolupráca a spoločné rozhodovanie. 🫱🫲<br><b>Liberálne vedenie</b> - Zriedkavo využíva svoju moc a spolupracovníkom necháva veľkú voľnosť v konaní. 🏖️"
+            }
+        ];
+
+        const correctSound = new Audio("correct.mp3");
+        const incorrectSound = new Audio("incorrect.mp3");
+        const revealSound = new Audio("reveal.wav");
+
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        let shuffledQuestions = shuffleArray([...questions]);
+        let currentQuestionIndex = 0;
+        let isInteractionLocked = false;
+
+        const questionElement = document.querySelector(".question");
+        const counterElement = document.querySelector(".counter");
+        const optionsElement = document.querySelector(".options");
+        const verifyButton = document.querySelector(".verify");
+        const resultElement = document.querySelector(".result");
+
+        let selectedAnswers = new Set();
+
+        function updateCounter() {
+            counterElement.textContent = `Otázka ${currentQuestionIndex + 1} / ${questions.length}`;
+        }
+
+        function lockInteraction() {
+            isInteractionLocked = true;
+        }
+
+        function unlockInteraction() {
+            isInteractionLocked = false;
+        }
+
+        function loadQuestion() {
+            verifyButton.disabled = true; // Disable button
+            const question = shuffledQuestions[currentQuestionIndex];
+            questionElement.textContent = question.text;
+            updateCounter();
+
+            optionsElement.innerHTML = "";
+            selectedAnswers.clear();
+
+            if (question.type === "reveal") {
+                const revealButton = document.createElement("button");
+                revealButton.textContent = "Zobraziť odpoveď";
+                revealButton.classList.add("verify");
+                revealButton.addEventListener("click", () => {
+                    revealSound.play();
+                    const answerDiv = document.createElement("div");
+                    answerDiv.innerHTML = question.answer;
+                    //answerDiv.style.marginTop = "20px";
+                    answerDiv.style.fontSize = "1.2em";
+                    optionsElement.innerHTML = "";
+                    optionsElement.appendChild(answerDiv);
+                    revealButton.disabled = true;
+                    verifyButton.disabled = false;
+                    verifyButton.textContent = "Ďalej";
+                });
+                optionsElement.appendChild(revealButton);
+                verifyButton.textContent = "Ďalej";
+                return;
+            }
+            
+            verifyButton.textContent = "Overiť";
+
+            Object.entries(question.options).forEach(([key, value]) => {
+                const optionDiv = document.createElement("div");
+                optionDiv.className = "option";
+
+                const button = document.createElement("button");
+                button.textContent = key.toUpperCase();
+                button.dataset.option = key;
+                button.addEventListener("click", () => {
+                    if (isInteractionLocked) return;
+
+                    if (selectedAnswers.has(key)) {
+                        selectedAnswers.delete(key);
+                        button.classList.remove("selected");
+                    } else {
+                        selectedAnswers.add(key);
+                        button.classList.add("selected");
+                    }
+
+                    verifyButton.disabled = selectedAnswers.size === 0;
+                });
+
+                const label = document.createElement("span");
+                label.textContent = value;
+
+                optionDiv.appendChild(button);
+                optionDiv.appendChild(label);
+                optionsElement.appendChild(optionDiv);
+            });
+        }
+
+        function showResult(message, isCorrect) {
+            resultElement.textContent = message;
+            resultElement.style.backgroundColor = isCorrect ? "#18bd18" : "#f52549";
+            resultElement.classList.add("show");
+
+            setTimeout(() => {
+                resultElement.classList.remove("show");
+            }, 2000);
+        }
+
+        function verifyAnswer() {
+            lockInteraction();
+            verifyButton.disabled = true; // Disable button after clicking
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            if (question.type === "reveal") {
+                goToNextQuestion();
+                //verifyButton.textContent = "Overiť";
+                return;
+            }
+
+            const buttons = optionsElement.querySelectorAll("button");
+            const isCorrect = Array.from(selectedAnswers).every(answer => question.correctAnswers.includes(answer)) && selectedAnswers.size === question.correctAnswers.length;
+
+            buttons.forEach(button => {
+                const option = button.dataset.option;
+                if (question.correctAnswers.includes(option)) {
+                    button.style.backgroundColor = "#18bd18";
+                    button.style.color = "#fff";
+                } else {
+                    button.style.backgroundColor = "#f52549";
+                    button.style.color = "#fff";
+                }
+            });
+
+            if (isCorrect) {
+                correctSound.play();
+                showResult("Správne!", true);
+                setTimeout(() => {
+                    goToNextQuestion();
+                }, 2000);
+            } else if (verifyButton.textContent == "Ďalej") {
+                verifyButton.textContent = "Overiť";
+            } else {
+                incorrectSound.play();
+                showResult("Nesprávne!", false);
+                if ("vibrate" in navigator) {
+                    navigator.vibrate(500);
+                }
+                verifyButton.textContent = "Ďalej";
+                setTimeout(() => {
+                    verifyButton.disabled = false;
+                }, 2000);
+                verifyButton.addEventListener("click", goToNextQuestion, { once: true });
+            }
+        }
+
+        function goToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= shuffledQuestions.length) {
+                shuffledQuestions = shuffleArray([...questions]);
+                currentQuestionIndex = 0;
+            }
+            unlockInteraction();
+            loadQuestion();
+        }
+
+        verifyButton.addEventListener("click", verifyAnswer);
+
+        loadQuestion();
+    </script>
+</body>
+</html>
