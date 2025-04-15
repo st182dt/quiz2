@@ -1,0 +1,10 @@
+## Interface: 11507
+
+## Title: SlovAzer
+## Author: Bettiold
+## Version: 1.0
+## Notes: Dabing WoWka po slovensky
+
+Data\greetings.lua
+Data\quests.lua
+main.lua
